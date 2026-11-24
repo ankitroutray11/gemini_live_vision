@@ -1,0 +1,12 @@
+.chirkoot_profile/
+__pycache__/
+*.pyc
+*.log
+models/
+data/
+screenshots/
+backups/
+*.cer
+*.lnk
+.env
+credentials.dat

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="chirkoot-auth-token" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHIRKOOT // MK-V COMMAND INTERFACE</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" href="/static/chirkoot.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=202611100200">
+</head>
+<body class="jarvis-theme">
+
+  <!-- Background Scanline & Grid Effect -->
+  <div class="hud-grid-background"></div>
+  <div class="hud-scanlines"></div>
+  <div class="hud-ambient-glow"></div>
+
+  <div class="app-container">
+    
+    <!-- Top Futuristic JARVIS Header -->
+    <header class="hud-header">
+      
+      <!-- Brand & Identity -->
+      <div class="hud-brand">
+        <div class="hud-avatar-frame">
+          <img src="/static/chirkoot.png" alt="Chirkoot" class="hud-avatar-img">
+          <div class="hud-avatar-ring"></div>
+          <div class="hud-avatar-pulse"></div>
+        </div>
+        <div class="hud-title-block">
+          <div class="hud-model-tag">JARVIS PROTOCOL // GEMINI 3.8 LIVE</div>
+          <h1 class="hud-main-title">CHIRKOOT <span class="hud-version">MK-V</span></h1>
+          <div class="hud-status-line">
+            <span class="hud-status-led active" id="neural-status-led"></span>
+            <span class="hud-status-text" id="neural-status-text">NEURAL INTERFACE SYNCHRONIZED</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Telemetry Display (100% Real Live Metrics) -->
+      <div class="hud-center-telemetry">
+        <div class="telemetry-item">
+          <span class="telemetry-label">CORE FREQ</span>
+          <span class="telemetry-val" id="telemetry-freq">24.0 kHz</span>
+        </div>
+        <div class="telemetry-divider"></div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">OPTIC LINK</span>
+          <span class="telemetry-val" id="telemetry-fps">1.0 FPS</span>
+        </div>
+        <div class="telemetry-divider"></div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">p50 LATENCY</span>
+          <span class="telemetry-val active-cyan" id="telemetry-latency">-- ms</span>
+        </div>
+        <div class="telemetry-divider"></div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">TOOL S/R</span>
+          <span class="telemetry-val" id="telemetry-tool-sr">100%</span>
+        </div>
+        <div class="telemetry-divider"></div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">RAM</span>
+          <span class="telemetry-val" id="telemetry-ram">-- MB</span>
+        </div>
+      </div>
+
+      <!-- Security & Window Controls -->
+      <div class="hud-action-cluster">
+        <button id="btn-api-key-config" class="hud-pill-btn" onclick="openApiKeyModal()" title="Configure Gemini API Key in DPAPI Vault" style="border-color: rgba(0,243,255,0.4); background: rgba(0,243,255,0.06);">
+          <span class="pill-dot" style="background: #00f3ff; box-shadow: 0 0 6px #00f3ff;"></span>
+          <span class="pill-text" id="api-key-pill-text">🔑 API KEY</span>
+        </button>
+        <button id="btn-kill-switch" class="hud-pill-btn emergency-btn" onclick="toggleEmergencyStop()" title="Emergency Kill Switch (Ctrl+Shift+X or Esc+Esc)">
+          <span class="pill-dot red"></span>
+          <span class="pill-text" id="kill-switch-text">EMERGENCY STOP</span>
+        </button>
+        <div class="hud-win-controls">
+          <button class="win-btn win-min" onclick="minimizeWindow()" title="Minimize to Taskbar">
+            <svg viewBox="0 0 10 10" width="10" height="10"><rect x="1" y="5" width="8" height="2" fill="currentColor"/></svg>
+          </button>
+          <button class="win-btn win-max" onclick="maximizeWindow()" title="Maximize Window (Win+Up)">
+            <svg viewBox="0 0 10 10" width="10" height="10"><rect x="1.5" y="1.5" width="7" height="7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button>
+          <button class="win-btn win-res" onclick="restoreWindow()" title="Restore Down / Float (Win+Down)">
+            <svg viewBox="0 0 10 10" width="10" height="10"><path d="M3.5 1.5h5v5M1.5 3.5h5v5H1.5z" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+          </button>
+          <button class="win-btn win-close" onclick="closeWindow()" title="Close Chirkoot">
+            <svg viewBox="0 0 10 10" width="10" height="10"><path d="M1.5 1.5L8.5 8.5M8.5 1.5L1.5 8.5" stroke="currentColor" stroke-width="1.6"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- MK-V Tactical Command Navigation Bar -->
+    <nav class="hud-nav-bar" id="hud-nav-bar">
+      <div class="nav-tab-group">
+        <button class="nav-tab-btn active" id="tab-cockpit" onclick="switchHudView('cockpit')">
+          <span class="tab-indicator"></span>
+          <span class="tab-icon">🎯</span>
+          <span class="tab-label">COCKPIT</span>
+        </button>
+        <button class="nav-tab-btn" id="tab-tasks" onclick="switchHudView('tasks')">
+          <span class="tab-indicator"></span>
+          <span class="tab-icon">📋</span>
+          <span class="tab-label">TASK MANAGER</span>
+          <span class="nav-badge" id="badge-active-tasks" style="display:none;">1</span>
+        </button>
+        <button class="nav-tab-btn" id="tab-tools" onclick="switchHudView('tools')">
+          <span class="tab-indicator"></span>
+          <span class="tab-icon">⚙️</span>
+          <span class="tab-label">TOOL ACTIVITY</span>
+        </button>
+        <button class="nav-tab-btn" id="tab-permissions" onclick="switchHudView('permissions')">
+          <span class="tab-indicator"></span>
+          <span class="tab-icon">🛡️</span>
+          <span class="tab-label">PERMISSION CENTRE</span>
+          <span class="nav-badge alert" id="badge-pending-permissions" style="display:none;">0</span>
+        </button>
+        <button class="nav-tab-btn" id="tab-memories" onclick="switchHudView('memories')">
+          <span class="tab-indicator"></span>
+          <span class="tab-icon">🧠</span>
+          <span class="tab-label">MEMORY BANK</span>
+        </button>
+        <button class="nav-tab-btn" id="tab-skills" onclick="switchHudView('skills')">
+          <span class="tab-indicator"></span>
+          <span class="tab-icon">⚡</span>
+          <span class="tab-label">SKILL STUDIO</span>
+        </button>
+        <button class="nav-tab-btn" id="tab-diagnostics" onclick="switchHudView('diagnostics')">
+          <span class="tab-indicator"></span>
+          <span class="tab-icon">📊</span>
+          <span class="tab-label">DIAGNOSTICS</span>
+        </button>
+      </div>
+
+      <!-- Privacy Streaming Status Indicators (Visible at all times) -->
+      <div class="nav-status-cluster">
+        <div class="hud-privacy-indicator standby" id="privacy-mic-indicator" title="Microphone Streaming Privacy Status">
+          <span class="privacy-dot"></span>
+          <span class="privacy-text" id="privacy-mic-text">MIC: STANDBY</span>
+        </div>
+        <div class="hud-privacy-indicator standby" id="privacy-radar-indicator" title="Screen Radar Capture Privacy Status">
+          <span class="privacy-dot"></span>
+          <span class="privacy-text" id="privacy-radar-text">RADAR: OFF</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Prominent Emergency Stop Warning Banner -->
+    <div id="emergency-stop-banner" class="emergency-stop-banner" style="display: none;">
+      <div class="banner-content">
+        <span class="banner-icon">🚨</span>
+        <span class="banner-title">EMERGENCY STOP ENGAGED</span>
+        <span class="banner-desc">All UI actions, mouse/keyboard injection, audio playback, mic/screen streams, and running child processes halted.</span>
+        <button id="btn-banner-reset" class="banner-reset-btn" onclick="resetKillSwitch()">
+          <span>RESET &amp; RESUME (Click or Press Enter)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Active In-Flight Task & Permission Cyber Strip (Visible when task/approval active) -->
+    <div id="hud-active-task-strip" class="hud-active-task-strip" style="display: none;">
+      <div class="task-strip-info">
+        <span class="task-strip-status" id="task-strip-status-badge">IN PROGRESS</span>
+        <span class="task-strip-prompt" id="task-strip-prompt-text">Directive: Processing...</span>
+      </div>
+      <div class="task-strip-actions">
+        <span id="task-strip-step-indicator" style="color: #00f0ff; font-size: 0.7rem; font-weight: 600;">Step 1</span>
+        <button class="strip-btn cancel" onclick="cancelCurrentActiveTask()">CANCEL TASK</button>
+        <button class="strip-btn" onclick="switchHudView('tasks')">VIEW TASK &gt;</button>
+      </div>
+    </div>
+
+    <!-- Main Tactical Workspace Container -->
+    <main class="hud-main-workspace">
+      
+      <!-- VIEW 1: COCKPIT VIEW (DEFAULT // Arc Reactor + Radar + Comms) -->
+      <div class="hud-view-pane active" id="view-cockpit">
+        
+        <!-- Left Panel: Optical Viewport & Arc Reactor Core -->
+        <section class="hud-panel optics-panel" id="viewport-card">
+          
+          <div class="panel-header">
+            <div class="panel-header-left">
+              <span class="panel-bracket">[</span>
+              <span class="panel-title">OPTICAL SENSORS & TACTICAL CORE</span>
+              <span class="panel-bracket">]</span>
+            </div>
+            <div class="panel-header-right">
+              <span class="hud-tag" id="hud-viewport-status">CORE ENGAGED</span>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="video-wrapper" id="video-wrapper">
+              
+              <!-- Live Screen Share / Camera Video Feed -->
+              <video id="live-video" autoplay playsinline muted></video>
+
+              <!-- Futuristic JARVIS Arc Reactor Standby Visualizer -->
+              <div class="vision-placeholder" id="vision-placeholder">
+                
+                <!-- Arc Reactor Complex -->
+                <div class="arc-reactor-container">
+                  
+                  <!-- Canvas for dynamic audio spectrum rays -->
+                  <canvas id="arc-visualizer-canvas" class="arc-visualizer-canvas" width="340" height="340"></canvas>
+                  
+                  <!-- SVG Tech Rings -->
+                  <svg class="arc-reactor-svg" viewBox="0 0 300 300">
+                    <defs>
+                      <linearGradient id="reactor-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#00f0ff" />
+                        <stop offset="50%" stop-color="#0080ff" />
+                        <stop offset="100%" stop-color="#7928ca" />
+                      </linearGradient>
+                      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="4" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                      </filter>
+                    </defs>
+                    
+                    <!-- Outer Static Graduated Ring -->
+                    <circle cx="150" cy="150" r="140" class="ring-outer-dashed" />
+                    <circle cx="150" cy="150" r="128" class="ring-track" />
+                    
+                    <!-- Rotating Ring 1: Clockwise Tech Ring -->
+                    <circle cx="150" cy="150" r="120" class="ring-rotate-cw" />
+                    
+                    <!-- Rotating Ring 2: Counter-Clockwise Segmented Ring -->
+                    <circle cx="150" cy="150" r="105" class="ring-rotate-ccw" />
+                    
+                    <!-- Pulsing Arc Core Ring -->
+                    <circle cx="150" cy="150" r="88" class="ring-core-pulse" />
+                    
+                    <!-- HUD Reticle Crosshairs -->
+                    <line x1="150" y1="5" x2="150" y2="35" class="reticle-line" />
+                    <line x1="150" y1="265" x2="150" y2="295" class="reticle-line" />
+                    <line x1="5" y1="150" x2="35" y2="150" class="reticle-line" />
+                    <line x1="265" y1="150" x2="295" y2="150" class="reticle-line" />
+                  </svg>
+
+                  <!-- Center Meme Cat Hologram Core -->
+                  <div class="reactor-center-avatar">
+                    <img src="/static/chirkoot.png" alt="Chirkoot Core" class="reactor-meme-cat">
+                    <div class="reactor-holo-overlay"></div>
+                  </div>
+
+                </div>
+
+                <!-- Central Assistant Status Ribbon (Panel 1) -->
+                <div class="assistant-status-ribbon" id="assistant-status-ribbon">
+                  <div class="assistant-status-badge standby" id="asst-state-badge">
+                    <span id="asst-state-icon">💤</span>
+                    <span id="asst-state-text">STANDBY</span>
+                  </div>
+                  <div class="assistant-status-badge" id="asst-gemini-badge">
+                    <span>⚡</span>
+                    <span id="asst-gemini-text">GEMINI 3.8 LIVE: CONNECTED</span>
+                  </div>
+                  <div class="assistant-status-badge" id="asst-mic-badge">
+                    <span>🎤</span>
+                    <span id="asst-mic-text">MIC: READY</span>
+                  </div>
+                  <div class="assistant-status-badge" id="asst-wake-badge">
+                    <span>👂</span>
+                    <span id="asst-wake-text">WAKE: "HEY CHIRKOOT"</span>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Video Overlay HUD (Active when streaming video/screen) -->
+              <div class="video-overlay" id="video-overlay" style="display: none;">
+                <!-- Tactical Corner Reticles -->
+                <div class="hud-corner corner-tl"></div>
+                <div class="hud-corner corner-tr"></div>
+                <div class="hud-corner corner-bl"></div>
+                <div class="hud-corner corner-br"></div>
+                
+                <!-- Laser Scanner Line -->
+                <div class="hud-scanner-line"></div>
+
+                <!-- Overlay Telemetry Tags (Panel 4) -->
+                <div class="overlay-tag" id="stream-type-tag">● SCREEN STREAMING</div>
+                <div class="overlay-fps" id="stream-fps-tag">1.0 FPS // 720P</div>
+                <div class="overlay-tag" id="hud-monitor-tag" style="top: 36px; left: 16px; font-size: 9px; color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.2); padding: 2px 6px; border-radius: 3px; background: rgba(10, 16, 26, 0.8);">MONITOR 1 (PRIMARY // 1920x1080)</div>
+                <div class="overlay-tag" id="hud-exclusion-tag" style="top: 60px; left: 16px; font-size: 9px; color: #00f3ff; letter-spacing: 1px; border: 1px solid rgba(0, 243, 255, 0.3); padding: 2px 6px; border-radius: 3px; background: rgba(10, 16, 26, 0.8);">WDA_EXCLUDEFROMCAPTURE: ACTIVE</div>
+                
+                <!-- Target Crosshair in Center -->
+                <div class="hud-center-crosshair"></div>
+
+                <!-- Tactical Window Switch & Controls -->
+                <div class="overlay-action-deck">
+                  <button class="overlay-action-btn ocr-btn" onclick="triggerScreenOCR()" title="Extract text & coordinates with Optical Character Recognition">
+                    <span>🔍 OCR SCAN</span>
+                  </button>
+                  <button class="overlay-action-btn alt-tab-btn" onclick="altTabToApp()" title="Instantly switch to your previous application (Alt+Tab)">
+                    <span>🗗 ALT+TAB TO APP</span>
+                  </button>
+                  <button class="overlay-action-btn radar-pause-btn" id="btn-radar-pause" onclick="toggleRadarPause()" title="Pause or resume Screen Radar transmission">
+                    <span id="btn-radar-pause-label">⏸️ PAUSE RADAR</span>
+                  </button>
+                  <button class="overlay-action-btn pip-btn" onclick="togglePiP()" title="Picture in Picture Mode">
+                    <span>POPOUT HUD</span>
+                  </button>
+                </div>
+
+                <!-- Sensitive App Privacy Warning Box -->
+                <div class="hud-screen-tip" id="hud-privacy-alert-box" style="display: none; border-color: #ffaa00; background: rgba(30, 20, 6, 0.9);">
+                  <span class="tip-icon">⚠️</span>
+                  <span class="tip-text" style="color: #ffaa00;" id="hud-privacy-alert-text">SCREEN CAPTURE AUTOMATICALLY PAUSED: Sensitive application active.</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Right Panel: Tactical Comms & Neural Dialogue Feed -->
+        <section class="hud-panel comms-panel">
+          
+          <div class="panel-header">
+            <div class="panel-header-left">
+              <span class="panel-bracket">[</span>
+              <span class="panel-title">TACTICAL COMMS &amp; NEURAL LOG</span>
+              <span class="panel-bracket">]</span>
+            </div>
+            
+            <!-- Live Animated Audio Wave Bars -->
+            <div class="panel-header-right">
+              <div class="hud-sound-spectrum" id="hud-sound-spectrum">
+                <span class="bar"></span><span class="bar"></span>
+                <span class="bar"></span><span class="bar"></span>
+                <span class="bar"></span><span class="bar"></span>
+                <span class="bar"></span><span class="bar"></span>
+              </div>
+              <span id="audio-state-text" class="audio-state">MIC READY</span>
+            </div>
+          </div>
+
+          <!-- Scrollable Dialogue Feed -->
+          <div class="panel-body comms-body">
+            <div class="transcript-container" id="transcript-container">
+              
+              <!-- Initial Welcome Message -->
+              <div class="message gemini-msg">
+                <div class="msg-avatar">
+                  <img src="/static/chirkoot.png" alt="Chirkoot">
+                </div>
+                <div class="msg-bubble">
+                  <div class="msg-header-info">
+                    <span class="msg-sender-tag">[CHIRKOOT // TACTICAL NEURAL AI]</span>
+                    <span class="msg-time-tag">ONLINE</span>
+                  </div>
+                  <p class="bubble-content">Systems nominal. I am Chirkoot MK-V, your autonomous multimodal desktop assistant. All 9 tactical command panels are online and synchronized with the security kernel.</p>
+                  <div class="msg-meta">CHIRKOOT MK-V • HARDENED PRODUCTION SECURITY CORE • 24.0 kHz PCM</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Interactive Tactical Chat Input Terminal -->
+            <div class="hud-chat-input-deck">
+              <form id="chat-form" class="hud-input-form" onsubmit="handleChatSubmit(event)">
+                <div class="hud-input-prefix">
+                  <span class="prefix-bracket">&gt;</span>
+                  <span class="prefix-tag">PROMPT</span>
+                </div>
+                
+                <input 
+                  type="text" 
+                  id="chat-text-input" 
+                  class="hud-text-field" 
+                  placeholder="Type instruction or directive for Chirkoot... (e.g. click submit, open notepad)" 
+                  autocomplete="off"
+                />
+                
+                <button type="submit" id="btn-chat-send" class="hud-send-btn" title="Transmit Command (Enter)">
+                  <span>TRANSMIT</span>
+                </button>
+              </form>
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+
+      <!-- VIEW 2: TASK MANAGER PANEL (Panel 2) -->
+      <div class="hud-view-pane" id="view-tasks" style="display: none;">
+        <div class="hud-panel-full">
+          <div class="panel-header">
+            <div class="panel-header-left">
+              <span class="panel-bracket">[</span>
+              <span class="panel-title">TASK MANAGER &amp; EXECUTION ORCHESTRATOR</span>
+              <span class="panel-bracket">]</span>
+            </div>
+            <div class="panel-header-right">
+              <button class="strip-btn" onclick="refreshTasksData()">⟳ REFRESH TASKS</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <!-- Active Task Hero Card -->
+            <div class="task-hero-card" id="task-manager-hero">
+              <div class="task-hero-header">
+                <div class="task-hero-title">
+                  <span>⚡ CURRENT ACTIVE TASK:</span>
+                  <span id="hero-task-id" style="color:#ffffff; font-size:0.8rem;">No active task</span>
+                </div>
+                <span class="task-strip-status" id="hero-task-status">IDLE</span>
+              </div>
+              <div class="task-hero-prompt" id="hero-task-prompt">Awaiting operator instruction or wake-word directive...</div>
+              <div class="task-steps-flow" id="hero-task-steps">
+                <div class="task-step-chip active"><span>1. Directives Ingestion</span></div>
+                <div class="task-step-chip"><span>2. Visual &amp; UIA Grounding</span></div>
+                <div class="task-step-chip"><span>3. Execution &amp; Closed-Loop Verify</span></div>
+              </div>
+              <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+                <button class="strip-btn cancel" id="hero-btn-cancel" onclick="cancelCurrentActiveTask()">CANCEL TASK</button>
+                <button class="strip-btn" id="hero-btn-retry" onclick="retryCurrentActiveTask()">RETRY STEP</button>
+              </div>
+            </div>
+
+            <!-- Task History Table -->
+            <div style="margin-top:10px;">
+              <h3 style="font-family:'Orbitron',sans-serif; font-size:0.75rem; color:#8da4be; margin-bottom:8px;">RECENT TASK HISTORY</h3>
+              <div class="telemetry-table-wrapper" id="task-history-container">
+                <div class="memory-loading">Loading task history...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: TOOL ACTIVITY PANEL (Panel 3) -->
+      <div class="hud-view-pane" id="view-tools" style="display: none;">
+        <div class="hud-panel-full">
+          <div class="panel-header">
+            <div class="panel-header-left">
+              <span class="panel-bracket">[</span>
+              <span class="panel-title">TOOL ACTIVITY &amp; VERIFIED EXECUTION STREAM</span>
+              <span class="panel-bracket">]</span>
+            </div>
+            <div class="panel-header-right">
+              <button class="strip-btn" onclick="refreshToolActivityData()">⟳ REFRESH STREAM</button>
+            </div>
+          </div>
+          <div class="panel-body" id="tool-activity-stream">
+            <div class="memory-loading">Loading recent tool activity...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 4: PERMISSION CENTRE (Panel 5) -->
+      <div class="hud-view-pane" id="view-permissions" style="display: none;">
+        <div class="hud-panel-full">
+          <div class="panel-header">
+            <div class="panel-header-left">
+              <span class="panel-bracket">[</span>
+              <span class="panel-title">PERMISSION CENTRE &amp; SECURITY AUTHORIZATION</span>
+              <span class="panel-bracket">]</span>
+            </div>
+            <div class="panel-header-right">
+              <button class="strip-btn" onclick="refreshPermissionsData()">⟳ REFRESH PERMISSIONS</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div id="pending-permissions-container">
+              <div style="color:#8da4be; font-family:'JetBrains Mono',monospace; padding:20px; text-align:center;">
+                ✅ All systems nominal. Zero pending policy authorizations. Actions operate within automated security bounds.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 5: MEMORY BANK (Panel 6) -->
+      <div class="hud-view-pane" id="view-memories" style="display: none;">
+        <div class="hud-panel-full">
+          <div class="panel-header">
+            <div class="panel-header-left">
+              <span class="panel-bracket">[</span>
+              <span class="panel-title">PERSISTENT HYBRID MEMORY BANK (SQLITE FTS5)</span>
+              <span class="panel-bracket">]</span>
+            </div>
+            <div class="panel-header-right">
+              <button class="strip-btn" onclick="refreshMemoryViewData()">⟳ REFRESH MEMORIES</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <!-- Search & Category Filters -->
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="text" id="memory-search-input" class="hud-text-field" placeholder="Search persistent memories by keyword or topic..." oninput="handleMemorySearch(event)">
+              <button class="strip-btn" onclick="pruneExpiredMemories()">PRUNE EXPIRED</button>
+            </div>
+            <div class="memory-table-wrapper" id="memory-view-container" style="margin-top:10px;">
+              <div class="memory-loading">Loading persistent memories...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 6: SKILL STUDIO (Panel 7) -->
+      <div class="hud-view-pane" id="view-skills" style="display: none;">
+        <div class="hud-panel-full">
+          <div class="panel-header">
+            <div class="panel-header-left">
+              <span class="panel-bracket">[</span>
+              <span class="panel-title">AUTONOMOUS SKILL STUDIO &amp; SELF-LEARNING ENGINE</span>
+              <span class="panel-bracket">]</span>
+            </div>
+            <div class="panel-header-right" style="display:flex; gap:8px;">
+              <button class="strip-btn" onclick="viewSkillsDiff()">VIEW GIT DIFF</button>
+              <button class="strip-btn" onclick="runSkillsSelfTests()">RUN SELF-TESTS</button>
+              <button class="strip-btn" onclick="refreshSkillsData()">⟳ REFRESH</button>
+            </div>
+          </div>
+          <div class="panel-body" id="skills-catalog-container">
+            <div class="memory-loading">Loading dynamic skills catalog...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 7: DIAGNOSTICS (Panel 8) -->
+      <div class="hud-view-pane" id="view-diagnostics" style="display: none;">
+        <div class="hud-panel-full">
+          <div class="panel-header">
+            <div class="panel-header-left">
+              <span class="panel-bracket">[</span>
+              <span class="panel-title">SYSTEM DIAGNOSTICS &amp; SUBSYSTEM TELEMETRY</span>
+              <span class="panel-bracket">]</span>
+            </div>
+            <div class="panel-header-right">
+              <button class="strip-btn" onclick="refreshDiagnosticsData()">⟳ REFRESH METRICS</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <!-- 8-Card Diagnostics Grid (100% Real Live Metrics) -->
+            <div class="diagnostics-grid">
+              <!-- Card 1: Gemini -->
+              <div class="diag-card-mkv">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">1. GEMINI 3.8 LIVE</span>
+                  <span class="status-badge completed" id="diag-gemini-status">SYNC</span>
+                </div>
+                <div class="diag-card-val"><span id="diag-gemini-p50">--</span> <small>ms p50</small></div>
+                <div class="diag-card-sub">p95: <span id="diag-gemini-p95">--</span> ms | Reconnects: <span id="diag-gemini-recon">0</span> | GoAway: <span id="diag-gemini-goaway">0</span></div>
+              </div>
+              <!-- Card 2: Audio -->
+              <div class="diag-card-mkv">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">2. AUDIO PIPELINE</span>
+                  <span class="status-badge completed">16k / 24k</span>
+                </div>
+                <div class="diag-card-val"><span id="diag-audio-drops">0</span> <small>drops</small></div>
+                <div class="diag-card-sub">In: 16.0 kHz PCM | Out: 24.0 kHz PCM | VAD: <span id="diag-audio-vad">ACTIVE</span></div>
+              </div>
+              <!-- Card 3: Wake Word -->
+              <div class="diag-card-mkv">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">3. WAKE-WORD ENGINE</span>
+                  <span class="status-badge completed">DUAL-MODE</span>
+                </div>
+                <div class="diag-card-val"><span id="diag-wake-fa">0.0</span> <small>FA/hr</small></div>
+                <div class="diag-card-sub">Misses: <span id="diag-wake-miss">0</span> | Keywords: "Hey Chirkoot", "Chirkoot"</div>
+              </div>
+              <!-- Card 4: Vision -->
+              <div class="diag-card-mkv">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">4. VISION RADAR</span>
+                  <span class="status-badge completed" id="diag-vision-status">ACTIVE</span>
+                </div>
+                <div class="diag-card-val"><span id="diag-vision-fps">1.0</span> <small>FPS</small></div>
+                <div class="diag-card-sub">Exclusion: <span id="diag-vision-excl">WDA_EXCLUDEFROMCAPTURE</span> | Displays: 1</div>
+              </div>
+              <!-- Card 5: Backend -->
+              <div class="diag-card-mkv">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">5. BACKEND HOST</span>
+                  <span class="status-badge completed">NOMINAL</span>
+                </div>
+                <div class="diag-card-val"><span id="diag-backend-uptime">--</span> <small>uptime</small></div>
+                <div class="diag-card-sub">FastAPI Port 8000 | Kill Switch: <span id="diag-backend-kill">DISENGAGED</span></div>
+              </div>
+              <!-- Card 6: CPU & RAM -->
+              <div class="diag-card-mkv">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">6. CPU &amp; RAM</span>
+                  <span class="status-badge completed">STABLE</span>
+                </div>
+                <div class="diag-card-val"><span id="diag-host-ram">--</span> <small>MB</small></div>
+                <div class="diag-card-sub">CPU: <span id="diag-host-cpu">0.0%</span> | Threads: <span id="diag-host-threads">--</span> | Children: <span id="diag-host-children">0</span></div>
+              </div>
+              <!-- Card 7: Active Workers -->
+              <div class="diag-card-mkv">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">7. ACTIVE WORKERS</span>
+                  <span class="status-badge completed">ONLINE</span>
+                </div>
+                <div class="diag-card-val"><span id="diag-workers-count">2</span> <small>workers</small></div>
+                <div class="diag-card-sub">UI Serial Queue: 0 pending | Audio Worker: Streaming</div>
+              </div>
+              <!-- Card 8: Recent Failures -->
+              <div class="diag-card-mkv">
+                <div class="diag-card-header">
+                  <span class="diag-card-title">8. RECENT FAILURES</span>
+                  <span class="status-badge completed" id="diag-failures-badge">0 FAILS</span>
+                </div>
+                <div class="diag-card-val"><span id="diag-failures-count">0</span> <small>recent</small></div>
+                <div class="diag-card-sub" id="diag-failures-desc">Zero recent tool or verification errors logged.</div>
+              </div>
+            </div>
+
+            <!-- Recent Failure Details Section -->
+            <div style="margin-top:10px;">
+              <h3 style="font-family:'Orbitron',sans-serif; font-size:0.75rem; color:#8da4be; margin-bottom:8px;">RECENT AUDIT FAILURES &amp; REJECTIONS</h3>
+              <div class="telemetry-table-wrapper" id="diag-failures-table">
+                <div class="memory-loading">Loading recent failure audit...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Bottom Tactical Cockpit Controls Bar -->
+    <footer class="hud-controls-deck">
+      
+      <!-- Listening Mode Control (Always-On vs Hey Chirkoot) -->
+      <button id="btn-mode-toggle" class="hud-control-btn mode-btn active" onclick="toggleListeningMode()" title="Toggle between Always-On Open Mic and 'Hey Chirkoot' Wake Word">
+        <div class="btn-corner-accent"></div>
+        <div class="mode-glow-ring"></div>
+        <span class="hud-btn-label" id="btn-mode-label">ALWAYS-ON</span>
+        <span class="hud-btn-sub" id="btn-mode-sub">OPEN MIC (CLICK TO SWITCH)</span>
+      </button>
+
+      <!-- Reply Mode Control (Voice vs Text-Only) -->
+      <button id="btn-reply-toggle" class="hud-control-btn reply-btn voice" onclick="toggleReplyMode()" title="Toggle Chirkoot's Response: Voice Speech vs Silent Text-Only">
+        <div class="btn-corner-accent"></div>
+        <div class="reply-glow-ring"></div>
+        <span class="hud-btn-label" id="btn-reply-label">VOICE REPLY</span>
+        <span class="hud-btn-sub" id="btn-reply-sub">AUDIO + TEXT (CLICK TO MUTE)</span>
+      </button>
+
+      <!-- Screen Share Control -->
+      <button id="btn-screen" class="hud-control-btn" onclick="toggleScreenShare()" title="Stream desktop screen to Chirkoot">
+        <div class="btn-corner-accent"></div>
+        <span class="hud-btn-label" id="btn-screen-label">SCREEN RADAR</span>
+        <span class="hud-btn-sub">DISPLAY UPLINK</span>
+      </button>
+
+      <!-- Camera Control -->
+      <button id="btn-camera" class="hud-control-btn" onclick="toggleCamera()" title="Stream camera feed to Chirkoot">
+        <div class="btn-corner-accent"></div>
+        <span class="hud-btn-label" id="btn-camera-label">OPTICAL EYE</span>
+        <span class="hud-btn-sub">CAMERA SENSOR</span>
+      </button>
+
+      <!-- Center Voice Wave / Mic Button -->
+      <button id="btn-mic" class="hud-control-btn mic-btn active" onclick="toggleMic()" title="Mute / Unmute Microphone">
+        <div class="btn-corner-accent"></div>
+        <div class="mic-glow-ring"></div>
+        <span class="hud-btn-label" id="btn-mic-label">NEURAL MIC</span>
+        <span class="hud-btn-sub">16kHz LIVE AUDIO</span>
+      </button>
+
+    </footer>
+
+  </div>
+
+  <!-- Modal 1: Human-In-The-Loop Security Policy Confirmation Modal (Keyboard Enter/Esc) -->
+  <div id="policy-confirm-modal" class="hud-modal-backdrop" style="display: none;">
+    <div class="hud-modal-card policy-card">
+      <div class="modal-header">
+        <div class="modal-title-block">
+          <span class="warning-icon">⚠️</span>
+          <h2 class="modal-title">POLICY AUTHORIZATION REQUIRED</h2>
+        </div>
+        <span class="modal-tier-badge" id="modal-tier-badge">TIER 3: HIGH RISK</span>
+      </div>
+      <div class="modal-body">
+        <div id="modal-taint-warning" class="modal-taint-box" style="display: none;">
+          <span class="taint-icon">☣️</span>
+          <span class="taint-text" id="modal-taint-text">TAINTED: Untrusted input was recently ingested. Scrutinize carefully!</span>
+        </div>
+        <p class="modal-prompt-text" id="modal-reason-text">The model requested execution of a side-effecting action. Physical confirmation required:</p>
+        
+        <div class="modal-action-box">
+          <div class="action-field">
+            <span class="field-label">TOOL:</span>
+            <span class="field-val" id="modal-tool-name">run_command</span>
+          </div>
+          <div class="action-field">
+            <span class="field-label">PARAMETERS:</span>
+            <pre class="field-code" id="modal-tool-args">{}</pre>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-policy-reject" class="modal-btn btn-reject" onclick="handlePolicyDecision('deny')">
+          <span>❌ REJECT &amp; ABORT (Esc)</span>
+        </button>
+        <button id="btn-policy-approve" class="modal-btn btn-approve" onclick="handlePolicyDecision('allow')">
+          <span>✔️ CONFIRM &amp; EXECUTE (Enter)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Skill Git Diff Modal -->
+  <div id="skill-diff-modal" class="hud-modal-backdrop" style="display: none;">
+    <div class="hud-modal-card" style="max-width: 750px; width: 90%;">
+      <div class="modal-header">
+        <div class="modal-title-block">
+          <span style="font-size:1.2rem;">⚡</span>
+          <h2 class="modal-title">SKILL GIT DIFF &amp; VALIDATION REPORT</h2>
+        </div>
+        <button class="modal-close-btn" onclick="closeSkillDiffModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="diff-code-container" id="skill-diff-content">Loading git diff...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Gemini API Key Modal -->
+  <div id="api-key-modal" class="hud-modal-backdrop" style="display: none;">
+    <div class="hud-modal-card" style="max-width: 580px; width: 90%;">
+      <div class="modal-header">
+        <div class="modal-title-block">
+          <span style="font-size:1.2rem;">🔑</span>
+          <h2 class="modal-title">GEMINI LIVE API KEY REQUIRED</h2>
+        </div>
+        <button class="modal-close-btn" onclick="closeApiKeyModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 16px 20px;">
+        <p id="api-key-modal-desc" style="color: #94a3b8; font-size: 0.88rem; line-height: 1.5; margin-bottom: 14px;">
+          Google Gemini 3.8 Live requires an authorized API key. Please enter your Google AI Studio key below:
+        </p>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="password" id="input-api-key" placeholder="AIzaSy..." style="flex: 1; background: rgba(15,23,42,0.9); border: 1px solid #00f3ff; color: #fff; padding: 10px 14px; border-radius: 6px; font-family: monospace; font-size: 0.95rem; outline: none;" onkeydown="if(event.key==='Enter') saveApiKeyFromModal();" />
+          <button type="button" id="btn-toggle-key-vis" class="hud-btn secondary" style="min-width: 44px; padding: 0 10px;" onclick="toggleApiKeyVisibility()">👁️</button>
+        </div>
+        <div id="api-key-status-msg" style="display: none; padding: 8px 12px; border-radius: 4px; font-size: 0.85rem; margin-bottom: 12px;"></div>
+        <div style="font-size: 0.78rem; color: #64748b; line-height: 1.4; border-left: 2px solid #00f3ff; padding-left: 10px;">
+          🔒 <strong>Hardware-Backed Security:</strong> Keys are encrypted using native Windows DPAPI (<code>CryptProtectData</code>) and stored in <code>%LOCALAPPDATA%\Chirkoot</code>. They are never transmitted or stored in plaintext.
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 14px 20px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="hud-btn secondary" onclick="closeApiKeyModal()">CANCEL</button>
+        <button class="hud-btn primary" id="btn-save-api-key" onclick="saveApiKeyFromModal()">💾 SAVE &amp; CONNECT</button>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="offscreen-canvas" style="display:none;"></canvas>
+  <script src="/static/app.js?v=202611100200"></script>
+</body>
+</html>
